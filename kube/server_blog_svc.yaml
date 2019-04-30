@@ -1,0 +1,54 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    run: backend
+  name: backend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: backend
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: backend
+    spec:
+      containers:
+        - image: gcr.io/privateblog-237213/server_blog_svc:v1.00
+          imagePullPolicy: IfNotPresent
+          name: backend
+          env:
+            - name: WEB_URI
+              value: http://frontend.default.svc.cluster.local:8010
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: backend
+  name: backend
+  namespace: default
+
+spec:
+  ports:
+    - protocol: TCP
+      port: 8020
+      name: http-backend
+      targetPort: 3000
+  selector:
+    run: backend
+  sessionAffinity: None
+  type: ClusterIP

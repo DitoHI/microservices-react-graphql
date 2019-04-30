@@ -1,0 +1,6 @@
+[submodule "server"]
+	path = server
+	url = git@github.com:DitoHI/cosmosdb-graphql-boilerplate.git
+[submodule "web"]
+	path = web
+	url = git@github.com:DitoHI/react-cosmosdb-graphql.git

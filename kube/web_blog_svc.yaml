@@ -1,0 +1,62 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    run: frontend
+  name: frontend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: frontend
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: frontend
+    spec:
+      containers:
+        - image: gcr.io/privateblog-237213/web_blog_svc:v1.00
+          imagePullPolicy: IfNotPresent
+          name: frontend
+          env:
+            - name: SERVER_URI
+              value: http://35.200.175.130/api/graphql
+          ports:
+            - containerPort: 80
+              protocol: TCP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: frontend
+  name: frontend
+  namespace: default
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name: frontend
+      prefix: /
+      service: frontend:8010
+
+spec:
+  ports:
+    - protocol: TCP
+      port: 8010
+      name: http
+      targetPort: 80
+  selector:
+    run: frontend
+  sessionAffinity: None
+  type: ClusterIP
